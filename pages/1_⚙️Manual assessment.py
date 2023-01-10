@@ -8,7 +8,7 @@ from pages.Functions.Dashboard_functions import add_previous_manual_assessments,
 st.title('Manual assessment')
 st.write('On this page you can rate all uploaded images with regards to how good they match their respective prompts. You can see the outcome of your assessment on the summary page.')
 st.write(' ')
-side_image = Image.open('Graphics/IL_Logo.png')
+side_image = Image.open('assets/IL_Logo.png')
 st.sidebar.image(side_image)
 # Create placeholders for key elements
 assessment_header = st.empty()

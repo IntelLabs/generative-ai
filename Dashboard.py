@@ -19,7 +19,7 @@ st.title('Generative Image Benchmark')
 st.write('This is an evaluation platform to assess the performance of image generation algorithms developed by Intel Labs. This is the alpha version of the platform.')
 st.subheader('User guide')
 st.write('To assess a generative image algorithm, download a set of prompts using the prompt downloader below. Generate one image per prompt and use the file names provided to name your images. Upload these generated images in the data upload section below. The pages for manual assessment and automated assessment allow you to systematically assess the generated images. The results will be presented and ready for download on the assessment summary page.')
-st.sidebar.image('Graphics/IL_Logo.png')
+st.sidebar.image('assets/IL_Logo.png')
 
 # Add prompt downloading functions
 prompt_download_dict = {}

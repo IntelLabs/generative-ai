@@ -29,5 +29,5 @@ If you want to provide information about linked prompts, you can provide the IDs
 It is easy to provide your own evaluation algorithm to the software for an existing task or a new task. To add an evaluation algorithm, make sure that the task you want to automate is on the “automated_task_list” in “Dashboard_setup.py” and then add the algorithm to the dictionary in “Dashboard_automation_setup.py” by either replacing the algorithm for an existing task or adding an algorithm for a task which does not have an algorithm yet. Every algorithm in the function dictionary needs to take 3 inputs: the PIL image, the “Representations” field and the “Task_specific_label” field. You can find example algorithms and their wrappers in “pages/Functions/Assessment_functions.py”.
 
 <p align="center">
-  <img src="Graphics/IL_Logo.png" width=30% height=30%>
+  <img src="assets/IL_Logo.png" width=30% height=30%>
 </p>
