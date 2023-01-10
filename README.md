@@ -1,16 +1,17 @@
-# generative-ai
-Intel Generative Image Model Benchmark
+# generative-ai: Intel Generative Image Model Benchmark
 
-## Benchmark information
-
-Dashboard for the evaluation of image generators. You can find the hosted version on:
+This is an open-source app for the evaluation of image generation algorithms, developed by Intel Labs. You can find a hosted version with limited features on:
 https://huggingface.co/spaces/achterbrain/Intel-Generative-Image-Dashboard
 
-This is a version with extended features not activated in the hosted version. To run the app locally, install Python 3.10.8 and the required packages, then execute:
+The version provided here has the full feature set for local execution. To run the app locally, install Conda (https://github.com/conda/conda). Then move to the repository folder and execute the following in your terminal to open the app in your browser window:
 
 ```
+conda create --name generative-ai-dashboard python=3.10.8
+conda activate generative-ai-dashboard
+pip install -r requirements.txt
 streamlit run Dashboard.py
 ```
+
 
 ## Customization guide
 The benchmark software has been built with customizability in mind. It is easy for the user to add their own prompts and tasks into the locally hosted version and provide an automated evaluation algorithm for existing or new tasks. Below we describe how to add custom elements to the benchmark. Follow the instructions below and the software will configure all elements on the pages as needed.
@@ -26,3 +27,7 @@ If you want to provide information about linked prompts, you can provide the IDs
 
 ### Adding evaluation algorithms
 It is easy to provide your own evaluation algorithm to the software for an existing task or a new task. To add an evaluation algorithm, make sure that the task you want to automate is on the “automated_task_list” in “Dashboard_setup.py” and then add the algorithm to the dictionary in “Dashboard_automation_setup.py” by either replacing the algorithm for an existing task or adding an algorithm for a task which does not have an algorithm yet. Every algorithm in the function dictionary needs to take 3 inputs: the PIL image, the “Representations” field and the “Task_specific_label” field. You can find example algorithms and their wrappers in “pages/Functions/Assessment_functions.py”.
+
+<p align="center">
+  <img src="Graphics/IL_Logo.png" width=30% height=30%>
+</p>
