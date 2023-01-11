@@ -2,7 +2,6 @@ altair==4.2.0
 attrs==22.1.0
 blinker==1.5
 cachetools==5.2.0
-certifi @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_477u68wvzm/croot/certifi_1671487773341/work/certifi
 charset-normalizer==2.1.1
 click==8.1.3
 commonmark==0.9.1
