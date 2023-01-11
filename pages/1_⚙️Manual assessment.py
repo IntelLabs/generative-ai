@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from PIL import Image
-from pages.Functions.Dashboard_functions import add_previous_manual_assessments, delete_last_manual_rating
+from pages.Functions.Dashboard_functions import add_previous_manual_assessments, delete_last_manual_rating, if_true_rerun
 
 
 st.title('Manual assessment')
@@ -155,11 +155,14 @@ if manual_eval_available > 0:
             # Reset page after ratings were submitted
             st.experimental_rerun()
 
-    # Return to last rated image
-    delete_last_manual_rating()
+    # Delete the last manual rating - this deletes the last set if multiple images were rated simultaneously
+    st.session_state['manual_rating_history'],st.session_state['eval_df'], bool_rating_deleted = delete_last_manual_rating(
+        st.session_state['manual_rating_history'],st.session_state['eval_df'])
+    if_true_rerun(bool_rating_deleted)
 
-    # Add option to add previous manual assessments
-    add_previous_manual_assessments()
+    # Allow user to upload past ratings and add them to eval_df
+    st.session_state['eval_df'], bool_ratings_uploaded = add_previous_manual_assessments(st.session_state['eval_df'])
+    if_true_rerun(bool_ratings_uploaded)
 
 # If no files are uploaded
 elif len(st.session_state['uploaded_img'])==0:
