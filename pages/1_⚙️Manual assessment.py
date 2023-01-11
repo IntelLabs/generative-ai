@@ -160,11 +160,9 @@ if manual_eval_available > 0:
         st.session_state['manual_rating_history'],st.session_state['eval_df'])
     if_true_rerun(bool_rating_deleted)
 
-    st.session_state['manual_rating_history']
-    st.session_state['eval_df']
-
-    # Add option to add previous manual assessments
-    add_previous_manual_assessments()
+    # Allow user to upload past ratings and add them to eval_df
+    st.session_state['eval_df'], bool_ratings_uploaded = add_previous_manual_assessments(st.session_state['eval_df'])
+    if_true_rerun(bool_ratings_uploaded)
 
 # If no files are uploaded
 elif len(st.session_state['uploaded_img'])==0:

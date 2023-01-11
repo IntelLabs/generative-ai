@@ -78,49 +78,75 @@ def delete_last_manual_rating(session_history, eval_df):
     return temp_session_history, temp_eval_df, temp_submit
      
 
-def add_previous_manual_assessments():
+def add_previous_manual_assessments_upload(eval_df):
     '''
-    This is a routine to allow the user to upload prior manual ratings and override
-    current ratings. This way the user can restart a manual assessment.
+    Routine to upload a dataframe of previous (manual) assessment to add it to existing database.
+    The uploaded df is assessed, matching counts are printed and it returns the imported df for furthe processing.
     '''
-    # Create dict to translate uploaded score into str format used during manual assessment
-    Bool_str_dict = {True:'Yes',False:'No'}
+    # Create necessary local variables
+    temp_eval_df = eval_df
 
-    st.subheader('Add previous assessments')
-    st.write('Upload results of previous assessment (as downloaded from summary page) to add these results and skip these images in your current manual assessment. Note that you can only add results for images which you have uploaded using the same file name.')
-
-    uploaded_ratings = st.file_uploader('Select .csv for upload', accept_multiple_files=False)
-    if uploaded_ratings != None:
+    # Upload single dataframe, setting default to None for code type checking
+    temp_uploaded_ratings = None
+    temp_uploaded_ratings = st.file_uploader('Select .csv for upload', accept_multiple_files=False)
+    if temp_uploaded_ratings != None:
         try:
-            uploaded_ratings_df = pd.read_csv(uploaded_ratings)
+            # Import the uploaded csv as dataframe
+            uploaded_ratings_df = pd.read_csv(temp_uploaded_ratings)
             
             # Run standard assert pipeline
             assert_uploaded_frame(uploaded_ratings_df)
 
             # Show matching image count and instructions
-            overlapping_files_df =pd.merge(st.session_state['eval_df'],uploaded_ratings_df,on='File_name',how='inner')
+            overlapping_files_df = pd.merge(temp_eval_df,uploaded_ratings_df,on='File_name',how='inner')
             st.write('Number of matching file names found: '+ str(len(overlapping_files_df)))
             st.write('Click "Add results" button to add / override current ratings with uploaded ratings.')
+
+            return uploaded_ratings_df
         except UnicodeDecodeError:
             st.write('WARNING: The uploaded file has to be a .csv downloaded from the "Assessment summary" page.')
+    return temp_uploaded_ratings
+
+def add_previous_manual_assessments_submit(eval_df, uploaded_ratings):
+    '''
+    If uploaded_ratings != None, this will create a button which when pressed will trigger
+    for the provided ratings to be added to eval_df
+    '''
+    # Create necessary local variables
+    temp_eval_df = eval_df
+    temp_submitted = False
+
+    # Create dict to translate uploaded score into str format used during manual assessment
+    bool_str_dict = {True:'Yes',False:'No'}
+
+    # If a dataframe of uploaded ratings was provided: create a button which allows to add ratings to existing eval_df
+    if type(uploaded_ratings) == pd.DataFrame:
+        temp_submitted = st.button("Add results")
+        if temp_submitted:
+            for row in uploaded_ratings.itertuples():
+                temp_eval_df.loc[temp_eval_df['File_name']==row.File_name,'manual_eval']=True
+                temp_eval_df.loc[temp_eval_df['File_name']==row.File_name,'manual_eval_completed']=True
+                temp_eval_df.loc[temp_eval_df['File_name']==row.File_name,'manual_eval_task_score']=bool_str_dict[row.Score]
+    return temp_eval_df, temp_submitted
 
 
-    submitted = st.button("Add results")
-    if submitted:
-        try:
-            for row in uploaded_ratings_df.itertuples():
-                st.session_state['eval_df'].loc[
-                    st.session_state['eval_df']['File_name']==row.File_name,'manual_eval']=True
-                st.session_state['eval_df'].loc[
-                    st.session_state['eval_df']['File_name']==row.File_name,'manual_eval_completed']=True
-                st.session_state['eval_df'].loc[
-                    st.session_state['eval_df']['File_name']==row.File_name,'manual_eval_task_score']=Bool_str_dict[row.Score]
+def add_previous_manual_assessments(eval_df):
+    '''
+    Full routine to allow the user to upload past ratings and add these to eval_df
+    '''
+    st.subheader('Add previous assessments')
+    st.write('Upload results of previous assessment (as downloaded from summary page) to add these results and skip these images in your current manual assessment. Note that you can only add results for images which you have uploaded using the same file name.')
 
-            # Reset page after ratings were submitted
-            st.experimental_rerun()
-        except NameError:
-            st.write('You need to upload a .csv file before you can add results.')
+    # Create necessary local variables
+    temp_eval_df = eval_df
 
+    # Allow user to upload .csv with prior ratings
+    uploaded_ratings = add_previous_manual_assessments_upload(temp_eval_df)
+
+    # Add rating to eval_df, if some were uploaded
+    temp_eval_df, temp_submitted = add_previous_manual_assessments_submit(temp_eval_df, uploaded_ratings)
+
+    return temp_eval_df, temp_submitted
 
 ##### Assessment summary
 
@@ -186,63 +212,3 @@ def multi_comparison_plotI(results_df = None, uploaded_df_list = []):
     plt.xlabel(' ')
     plt.ylim(0, 100)
     return fig,grouped_series
-
-
-
-
-############## Functions no longer used, to be deleted
-
-def plot_style_simple(results_df, return_table = False):
-    '''
-    Simple plot function for plotting just one dataframe of results
-    '''
-    eval_sum = results_df.groupby('Task')['Score'].sum()
-    eval_count = results_df.groupby('Task')['Score'].count()
-    eval_share = (eval_sum/eval_count)*100
-
-    if return_table:
-        return_series = results_df.groupby('Task')['Score'].sum()/results_df.groupby('Task')['Score'].count()*100
-        return_series = return_series.rename('Percentage correct')
-        return return_series
-
-    # Add small amount to make the bars on plot not disappear
-    eval_share = eval_share+1
-
-    fig = plt.figure(figsize=(12, 3))
-    sns.barplot(x=eval_share.index, y=eval_share.values, palette='GnBu')
-    plt.xticks(rotation=-65)
-    plt.ylabel('Percentage correct')
-    plt.xlabel(' ')
-    return fig
-
-def plot_style_combined(results_df, uploaded_df = None, return_table=False):
-    '''
-    Plot function which can plot to dataframe for comparison
-    '''
-    # Create joined dataframe of results and uploadd_df
-    uploaded_results_df = uploaded_df
-    manual_results_df['Model']='Current'
-    uploaded_results_df['Model']='Uploaded'
-    results_df = pd.concat([manual_results_df,uploaded_results_df])
-
-    # Create scores for plot
-    eval_sum = results_df.groupby(['Model','Task'])['Score'].sum()
-    eval_count = results_df.groupby(['Model','Task'])['Score'].count()
-    eval_share = (eval_sum/eval_count)*100
-    eval_share = eval_share.reset_index()
-
-    if return_table:
-        return_series = results_df.groupby(['Task','Model'])['Score'].sum()/results_df.groupby(['Task','Model'])['Score'].count()*100
-        return_series = return_series.rename('Percentage correct')
-        return return_series
-
-    # Add small amount to make the bars on plot not disappear
-    eval_share['Score'] = eval_share['Score']+1
-
-    # Create plot
-    fig = plt.figure(figsize=(12, 3))
-    sns.barplot(data=eval_share,x='Task',y='Score',hue='Model', palette='GnBu')
-    plt.xticks(rotation=-65)
-    plt.ylabel('Percentage correct')
-    plt.xlabel(' ')
-    return fig
