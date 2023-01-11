@@ -1,4 +1,8 @@
 # General functions and routines used in the dashboard
+'''
+- Functions below are ordered by page on which they are used
+- If possible, functions should not manipulate the session_state within them
+'''
 
 import streamlit as st
 import pandas as pd
@@ -8,6 +12,13 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 ##### Page-unspecific functions
+
+def if_true_rerun(bool_input):
+    '''
+    This function triggers a rerun of the page if the input == True
+    '''
+    if bool_input == True:
+        st.experimental_rerun()
 
 def assert_uploaded_frame(uploaded_df):
     # Set up variables checked for
@@ -43,21 +54,29 @@ def prompt_to_csv(df):
 
 ##### Manual assessment
 
-def delete_last_manual_rating():
+def delete_last_manual_rating(session_history, eval_df):
     '''
     Routine to delete last manual rating and hence to return to it
     '''
-    if len(st.session_state['manual_rating_history'])>0:
+    # Create local copies of objects
+    temp_session_history = session_history
+    temp_eval_df = eval_df.copy()
+    temp_submit = False
 
+    if len(temp_session_history)>0:
         if st.button('Return to last rated image'):
             # The list contains sublists of images rated together, here we loop over these images to reset all of them
-            deleted_picture_index_list = st.session_state['manual_rating_history'].pop()
+            deleted_picture_index_list = temp_session_history.pop()
             for i_picind in deleted_picture_index_list:
-                st.session_state['eval_df'].loc[
+                temp_eval_df.loc[
                     i_picind,'manual_eval_completed']=False
-                st.session_state['eval_df'].loc[
+                temp_eval_df.loc[
                     i_picind,'manual_eval_task_score']=np.nan  
-            st.experimental_rerun() 
+            
+            # Set submit boolean to true, to rerun the page
+    
+    return temp_session_history, temp_eval_df, temp_submit
+     
 
 def add_previous_manual_assessments():
     '''
