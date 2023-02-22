@@ -4,22 +4,28 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from PIL import Image
 from pages.Functions.Dashboard_functions import pre_assessment_visualisation, multi_comparison_plotI, print_results_tabs
-side_image = Image.open('assets/IL_Logo.png')
-st.sidebar.image(side_image)
+from Dashboard_setup import sidebar_information, dashboard_version_code
+sidebar_information()
 
 
-@st.cache
-def convert_df_to_csv(df):
+#@st.cache
+#def convert_df_to_csv(df):
+# IMPORTANT: Cache the conversion to prevent computation on every rerun
+#  return df[['File_name','Prompt_no','Task','Score']].to_csv().encode('utf-8')
+
+
+def df_to_csv_download(df, added_version_code='vNone'):
   # IMPORTANT: Cache the conversion to prevent computation on every rerun
-  return df[['File_name','Prompt_no','Task','Score']].to_csv().encode('utf-8')
+  df['Dashboard_version']= added_version_code
+  return df[['File_name','Prompt_no','Task','Score','Dashboard_version']].to_csv().encode('utf-8')
 
 assessment_result_frames = {}
-
-
 st.title('Assessment Summary')
+
+
+
+###### Manual assessment visualisation ############################
 st.header('Manual assessment')
-
-
 try:
   if sum(st.session_state['eval_df']['manual_eval_completed'])>0:
     # Display file uploader
@@ -29,7 +35,7 @@ try:
     manual_eval_df['Score'] = manual_eval_df['manual_eval_task_score'].map({'Yes':True, 'No':False})
     manual_results_df = manual_eval_df.loc[
       (manual_eval_df['manual_eval']==True)&
-      (manual_eval_df['manual_eval_completed']==True)]
+      ~(manual_eval_df['manual_eval_task_score'].isna())]
     manual_results_df['Model']='Manual assessment'
     assessment_result_frames['Manual assessment'] = manual_results_df
 
@@ -38,7 +44,7 @@ try:
 
     st.download_button(
       label="Download manual assessment data",
-      data=convert_df_to_csv(manual_results_df),
+      data=df_to_csv_download(manual_results_df, added_version_code=dashboard_version_code),
       file_name='manual_assessment.csv',
       mime='text/csv',
     )
@@ -47,6 +53,8 @@ try:
 except KeyError:
   pre_assessment_visualisation(type_str='manual')
 
+
+###### Automated assessment visualisation ############################
 st.write(' ')
 st.header('Automated assessment')
 try:
@@ -63,7 +71,7 @@ try:
 
   st.download_button(
     label="Download automated assessment data",
-    data=convert_df_to_csv(auto_eval_df),
+    data=df_to_csv_download(auto_eval_df, added_version_code=dashboard_version_code),
     file_name='automated_assessment.csv',
     mime='text/csv',
   )
@@ -71,6 +79,8 @@ except KeyError:
   pre_assessment_visualisation(type_str='automated')
 
 
+
+###### Gallery ############################
 try:
   # Start gallery
   st.header('Assessment gallery')
@@ -105,6 +115,7 @@ try:
   curr_Prompt = curr_prompt_dir[curr_prompt_dir['ID']==int(curr_Prompt_no)].Prompt
   curr_Picture_index = gallery_row_print.Picture_index.item()
   # Plot prompt and image
+  st.write('File name: '+gallery_row_print.File_name)
   st.write('Prompt: '+curr_Prompt.item())
   st.image(st.session_state['uploaded_img'][curr_Picture_index],width=350)
 

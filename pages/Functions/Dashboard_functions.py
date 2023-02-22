@@ -30,7 +30,8 @@ def assert_uploaded_frame(uploaded_df):
     asserted_column_names = ['Prompt_no','Score','Task','File_name']
 
     # Check whether all needed column names are present
-    existing_column_names = [(x in uploaded_df.columns) for x in asserted_column_names]
+    df_columns_list = uploaded_df.columns.tolist()
+    existing_column_names = [(x in df_columns_list) for x in asserted_column_names]
     assert all(existing_column_names), "The uploaded dataframe is missing a column needed for import. Your table needs to contain the columns: 'Prompt_no', 'Score', 'Task', 'File_name' "
 
     # Check whether all needed columns have correct dtypes
@@ -46,13 +47,114 @@ def assert_multi_frame_upload(list_of_uploaded_dfs):
         assert_uploaded_frame(i_df)
 
 ##### Dashboard main page
-def prompt_to_csv(df):
+def prompt_to_csv(df, added_version_code='vNone'):
     df_download = df
-    df_download['Filename']='p'+df_download['ID'].astype('str')+'_1.png'
+    df_download['Filename']='p'+df_download['ID'].astype('str')+'_1_'+added_version_code+'.png'
     df_download = df[['Prompt','Filename']].drop_duplicates(subset='Filename')
     return df_download.to_csv().encode('utf-8')
 
+def prompt_df_for_download(prompt_dir):
+    '''
+    Function to create a subset of the prompt_dir via count based selection
+    '''
+    # Create local copy of variables
+    temp_prompt_dir = prompt_dir
+
+    # Create dict to hold counts of downloaded prompts
+    prompt_download_dict = {}
+    ## Count how many prompts are in database to allow for max value in selection
+    prompt_task_count = temp_prompt_dir.Task.value_counts(sort=False)
+    prompt_task_select = prompt_task_count.copy()
+
+    # Create numerical selector for every task in prompt directory, add count per task to dict
+    for i_task in prompt_task_select.index:
+        prompt_task_select[i_task] = st.number_input(
+            i_task,
+            value = prompt_task_count[i_task], 
+            max_value=prompt_task_count[i_task],
+            min_value=0,
+            step = 1)
+
+    # Create df with selected number of prompts per task
+    for i_task in prompt_task_select.index:
+        temp_df = temp_prompt_dir.loc[temp_prompt_dir['Task']==i_task][0:prompt_task_select[i_task]]
+        if len(temp_df)>0:
+            prompt_download_dict[i_task]=temp_df
+
+    # Concat all tasks to dataframe
+    prompt_download = pd.concat(prompt_download_dict.values())
+
+    # Add linked prompts, if the user chooses to
+    download_linked_prompts = st.checkbox('Download linked prompts', value=True)
+    if download_linked_prompts:
+
+        # Delete rows which do not have linked prompts to avoid type error
+        linked_prompts_info = prompt_download.dropna(subset='Linked_prompts')
+
+        # Add relevant linked prompts
+        linked_prompts_ids = linked_prompts_info.Linked_prompts.str.split(',').explode().unique().astype('int')
+        prompt_download = pd.concat(
+            [prompt_download,
+            temp_prompt_dir.loc[temp_prompt_dir['ID'].isin(linked_prompts_ids)]])
+
+        # Drop rows prompts which appear twice
+        prompt_download = prompt_download.drop_duplicates(subset='ID')
+
+    return prompt_download
+
 ##### Manual assessment
+
+def set_eval_df_rating_vals(eval_df, picture_index, manual_eval, manual_eval_completed, manual_eval_task_score):
+    '''
+    Function to set a block of key manual rating related variables of eval_df
+    '''
+    temp_eval_df = eval_df
+    temp_eval_df.loc[picture_index,'manual_eval']=manual_eval
+    temp_eval_df.loc[picture_index,'manual_eval_completed']=manual_eval_completed
+    temp_eval_df.loc[picture_index,'manual_eval_task_score']=manual_eval_task_score
+    return temp_eval_df 
+
+def radio_rating_index_translation(manual_rating_value):
+    if manual_rating_value == "No":
+        return 1
+    else:
+        return 0 
+
+
+def collect_linked_prompt_ratings(curr_linked_prompts, curr_eval_df, curr_prompt_dir):
+    '''
+    Create elements to collect ratings on linked prompts:
+    If there are linked prompts, create df with info
+    Else create emtpy df which will automatically skip the rating creation for these prompts
+    Here we do not test for (curr_eval_df['manual_eval']==True) as the curr_linked_prompts 
+    is already testing for valid prompt number and we want to ignore the exclusion for subprompts
+    '''
+    if type(curr_linked_prompts)==list:
+        curr_linked_rows = curr_eval_df.loc[
+            (curr_eval_df['manual_eval_completed']==False)&
+            (curr_eval_df['Prompt_no'].isin(curr_linked_prompts))]
+        curr_linked_rows = curr_linked_rows.groupby('Prompt_no').first()
+    else:
+        curr_linked_rows = pd.DataFrame()
+
+    # Create rating for subprompts if a df for subprompt info was created
+    for row in curr_linked_rows.itertuples():
+        # Preselected radio option
+        radio_preselect = radio_rating_index_translation(row.manual_eval_task_score)
+        # Prompt
+        st.write('Prompt: {0}'.format(
+            curr_prompt_dir.loc[curr_prompt_dir['ID']==int(row.Index)]['Prompt'].item()
+        ))
+        # Image
+        st.image(st.session_state['uploaded_img'][row.Picture_index],width=350)
+        # Rating
+        curr_linked_rows.loc[curr_linked_rows['Picture_index']==row.Picture_index,'manual_eval_task_score'] = st.radio(
+            "Does the image match the prompt?",('Yes', 'No'), horizontal=True, key=row.Picture_index, index=radio_preselect)
+        st.write(' ')
+        st.write(' ')
+
+    return curr_linked_rows
+
 
 def delete_last_manual_rating(session_history, eval_df):
     '''
@@ -70,15 +172,16 @@ def delete_last_manual_rating(session_history, eval_df):
             for i_picind in deleted_picture_index_list:
                 temp_eval_df.loc[
                     i_picind,'manual_eval_completed']=False
-                temp_eval_df.loc[
-                    i_picind,'manual_eval_task_score']=np.nan  
+                #temp_eval_df.loc[
+                #    i_picind,'manual_eval_task_score']=np.nan  
             
             # Set submit boolean to true, to rerun the page
+            temp_submit = True
     
     return temp_session_history, temp_eval_df, temp_submit
      
 
-def add_previous_manual_assessments_upload(eval_df):
+def add_previous_manual_assessments_upload_back(eval_df):
     '''
     Routine to upload a dataframe of previous (manual) assessment to add it to existing database.
     The uploaded df is assessed, matching counts are printed and it returns the imported df for furthe processing.
@@ -107,6 +210,45 @@ def add_previous_manual_assessments_upload(eval_df):
             st.write('WARNING: The uploaded file has to be a .csv downloaded from the "Assessment summary" page.')
     return temp_uploaded_ratings
 
+
+def add_previous_manual_assessments_upload(eval_df, dashboard_version_code='vNone'):
+    '''
+    Routine to upload a dataframe of previous (manual) assessment to add it to existing database.
+    The uploaded df is assessed, matching counts are printed and it returns the imported df for furthe processing.
+    '''
+    # Create necessary local variables
+    temp_eval_df = eval_df
+
+    # Upload single dataframe, setting default to None for code type checking
+    temp_uploaded_ratings = None
+    temp_uploaded_ratings = st.file_uploader('Select .csv for upload', accept_multiple_files=False)
+    if temp_uploaded_ratings != None:
+        try:
+            # Import the uploaded csv as dataframe
+            uploaded_ratings_df = pd.read_csv(temp_uploaded_ratings)
+            
+            # Run standard assert pipeline
+            assert_uploaded_frame(uploaded_ratings_df)
+
+            # Check the uploaded df has a registered dashboard version
+            assert 'Dashboard_version' in uploaded_ratings_df.columns,"The uploaded dataframe needs to have a Dashboard_version column."
+            # Check for correct dashboard version in uploaded file
+            matching_dashboard_version = uploaded_ratings_df['Dashboard_version'] == dashboard_version_code
+            assert all(matching_dashboard_version),"The dashboard version of your uploaded results does not match the version of this dashboard."
+
+            # Show matching image count and instructions
+            overlapping_files_df = pd.merge(temp_eval_df,uploaded_ratings_df,on='File_name',how='inner')
+            st.write('Number of matching file names found: '+ str(len(overlapping_files_df)))
+            ## Show warning if some of the matching images already have a rating
+            if len(overlapping_files_df.manual_eval_task_score.dropna())>0:
+                st.write('WARNING: {0} of {1} matching files already have a saved rating. These will be overriden when you click "Add results".'.format(
+                    str(len(overlapping_files_df.manual_eval_task_score.dropna())),str(len(overlapping_files_df))))
+            st.write('Click "Add results" button to add uploaded ratings to current ratings.')
+            return uploaded_ratings_df
+        except UnicodeDecodeError:
+            st.write('WARNING: The uploaded file has to be a .csv downloaded from the "Assessment summary" page.')
+    return temp_uploaded_ratings
+
 def add_previous_manual_assessments_submit(eval_df, uploaded_ratings):
     '''
     If uploaded_ratings != None, this will create a button which when pressed will trigger
@@ -130,7 +272,7 @@ def add_previous_manual_assessments_submit(eval_df, uploaded_ratings):
     return temp_eval_df, temp_submitted
 
 
-def add_previous_manual_assessments(eval_df):
+def add_previous_manual_assessments(eval_df, dashboard_version_code):
     '''
     Full routine to allow the user to upload past ratings and add these to eval_df
     '''
@@ -141,7 +283,7 @@ def add_previous_manual_assessments(eval_df):
     temp_eval_df = eval_df
 
     # Allow user to upload .csv with prior ratings
-    uploaded_ratings = add_previous_manual_assessments_upload(temp_eval_df)
+    uploaded_ratings = add_previous_manual_assessments_upload(temp_eval_df, dashboard_version_code)
 
     # Add rating to eval_df, if some were uploaded
     temp_eval_df, temp_submitted = add_previous_manual_assessments_submit(temp_eval_df, uploaded_ratings)
