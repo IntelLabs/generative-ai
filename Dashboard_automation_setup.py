@@ -6,4 +6,5 @@ fun_dict = {
     'Single object':CLIP_single_object_classifier,
     'Negation':CLIP_object_negation,
     'Numbers (multiple objects)':DETR_multi_object_counting_DSwrapper,
-    'Simple arithmetic':DETR_multi_object_counting_DSwrapper}
+    'Simple arithmetic':DETR_multi_object_counting_DSwrapper,
+    'Conditional generation':CLIP_object_negation}

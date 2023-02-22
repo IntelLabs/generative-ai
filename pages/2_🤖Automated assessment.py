@@ -2,13 +2,15 @@ import streamlit as st
 import numpy as np
 from itertools import compress
 from PIL import Image
+from Dashboard_setup import sidebar_information
+sidebar_information() # Move this up to be displayed before the evaluation functions are loaded
 from Dashboard_automation_setup import fun_dict
 
 st.title('Automated Assessment')
 st.write('On this page you can use automated assessment algorithms to assess how good uploaded images match their respective prompts.')
 st.write(' ')
-st.sidebar.image('assets/IL_Logo.png')
 
+###### Setup of variables ############################
 try:
     # Create necessary variables
     prompt_dir = st.session_state['prompt_dir']
@@ -29,6 +31,7 @@ except KeyError:
     automated_eval_available = 0
 
 
+###### Rating loop ############################
 # If images for assessment available: create form to start assessment
 # Else: Note to upload images for assessment
 if automated_eval_available > 0:
@@ -56,14 +59,23 @@ if automated_eval_available > 0:
             # Create list for tasks which were selected for assessment
             selected_tasks = list(compress(task_list,task_list_selected))
 
-
             # Create dataset to loop over with assessment
             assessed_df = curr_eval_df.loc[
                     (curr_eval_df['automated_eval']==True)&
                     (curr_eval_df['Task'].isin(selected_tasks))]
             results_column = []
             
+            # Add counter for progress bars
+            num_automated_rows = len(assessed_df)
+            i_num_row = 0
+            i_progress_increase = 1/num_automated_rows
+            st.write('Progress of automatic evaluation:')
+            auto_assessment_progress = st.progress(0)
+
             for row in assessed_df.itertuples():
+                i_num_row +=1
+                auto_assessment_progress.progress(0+i_num_row*i_progress_increase)
+
                 # Apply task based classifier and safe in list
                 temp_image = Image.open(st.session_state['uploaded_img'][row.Picture_index])
                 temp_result = fun_dict[row.Task](
@@ -72,6 +84,6 @@ if automated_eval_available > 0:
 
             assessed_df['Score']=results_column
             st.session_state['auto_eval_df']=assessed_df[['File_name','Prompt_no','Picture_index','Task','Score']]
-            st.write('Completed assessment. Access results on the summary page.')
+            st.write('Assessment completed. You can access the results on the summary page. Running a new automated assessment will override past results.')
 else:
     st.write('Upload files on dashboard starting page to start automated assessment.')
