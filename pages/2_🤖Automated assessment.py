@@ -7,7 +7,7 @@ sidebar_information() # Move this up to be displayed before the evaluation funct
 from Dashboard_automation_setup import fun_dict
 
 st.title('Automated Assessment')
-st.write('On this page you can use automated assessment algorithms to assess how good uploaded images match their respective prompts. Note that the automatic assessment routines have not been validated and accuracy estimated will be provided in a future version.')
+st.write('On this page you can use automated assessment algorithms to assess how good uploaded images match their respective prompts. Note that the automatic assessment routines have not been validated and accuracy estimates will be provided in a future version.')
 st.write(' ')
 
 ###### Setup of variables ############################
