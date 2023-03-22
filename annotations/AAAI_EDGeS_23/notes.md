@@ -1,4 +1,8 @@
 # Notes on annotation
+These analyses were run in the "annotation_analysis230322" environment.
+
+## Extra variables variables in prompt directory
+For the analysis of annotations we make use of additional variables describing the prompts. These were extracted during the creation and can be used for any other annotation analysis based on the pd230228 prompt directory.
 
 ## Published reports of this data
 The results presented here were used in the AAAI Spring Symposium '23 (EDGeS) paper. The paper is available here: [add link]
