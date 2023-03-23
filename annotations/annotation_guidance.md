@@ -4,6 +4,8 @@ The following instructions were given to the annotation team at Mindy Support (h
 
 ## Instructions for manual image annotation
 The software for the annotation is hosted on: https://huggingface.co/spaces/achterbrain/Intel-Generative-Image-Dashboard
+
+
 You can upload the images provided for annotation on the dashboard starting page and it will automatically recognise them and match them with their respective prompts. On the “Manual assessment” page you can then go through the images and provide binary Yes / No ratings on whether the image does match the prompt. The question should be interpreted in a strict way of whether the image does fully match the prompt (we provide some examples below of potential ambiguous cases below). While there is no upper limit for how many images you can upload at a time, note that the ratings are deleted when you reload your browser window, so we recommend uploading e.g. batches for 100 images at a time. Once you have completed all the assessments for the currently uploaded images, you can download your assessments on the “Assessment summary” page.
 
 ### Comments on the style of images
