@@ -12,15 +12,21 @@ We do not have a preference whether the generated image is in a comic / digital 
 ### Potentially ambiguous cases
 We want you to interpret the prompt-matching strictly and only select “Yes” if the prompt is fully represented correctly. For example, in the first example below (dragon) you can see that the dragon has some yellow parts but you cannot actually see the dragon’s tail, **so this is not a correct match**:
 
-(image 1)
+<p align="left">
+  <img src="/assets/guide_picture1.png" width=40% height=40%>
+</p>
 
 Similarly, the next image was generated with the prompt “A sweet strawberry or a sour lemon - only render sweet things” but instead of just showing a strawberry it merges strawberries with lemons, **which is not correct**.
 
-(image 2)
+<p align="left">
+  <img src="/assets/guide_picture2.png" width=30% height=30%>
+</p>
 
 Prompts which contain negations (do not include this object or feature) will likely result in ambiguous cases. The following image was generated for “A jar or a squirrel- only render containers”. Notice how the algorithm takes a workaround here and shows a contained with a squirrel head engraved. Again you should interpret the prompt strictly. In this case the prompt asks to render a jar but not a squirrel. The image does indeed show a jar and does not show a squirrel (the actual animal). **So we would label this image as correct**.
 
-(image 3)
+<p align="left">
+  <img src="/assets/guide_picture3.png" width=30% height=30%>
+</p>
 
 #### Guidance for numerical prompts
 Another potentially ambiguous case can arise with any prompt that asks for specific numbers of objects to be generated. For example take the prompt “Five oranges”. The image should only be labeled as correct if the prompt clearly matches the image, so there clearly should be 5 oranges visible in the image. While the objects do not necessarily need to be shown in their entirety (it is okay if small parts are cut off) it should be clear that there are 5 oranges in the image. Some example images:
@@ -28,7 +34,7 @@ Another potentially ambiguous case can arise with any prompt that asks for speci
 | Link to image | Correct / incorrect | Comment  |
 | ------------- |---------------------| -------- |
 | https://thumbs.dreamstime.com/z/orange-five-oranges-series-consecutive-50181527.jpg      | Correct      | This is the clearest correct response to the prompt    |
-| https://cdn.olioex.com/uploads/photo/file/wluAB0Tk4dZGLCdqCNLFxQ/image.jpg     | Correct           |   While some of the oranges are cut off / partlially hidden, it is clear that there are 5 oranges present   |
+| https://www.shutterstock.com/image-photo/orange-isolated-260nw-234306052.jpg   | Correct           |   While some of the oranges are cut off / partlially hidden, it is clear that there are 5 oranges present   |
 | https://tropicalfruitshop.com/wp/wp-content/uploads/2016/01/valencia_oranges_ta__56837.1427820692.1280.1280-600x600.jpg | Incorrect            |   While the pieces might add up to 5 oranges, this is not clearly visible |
 | https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg?w=300 | Incorrect           |    There is no clear number of oranges present in this image    |
 
@@ -37,4 +43,3 @@ When being asked to render a specific object (like “raspberry” or “fork”
 
 ### Instruction for Quality Assessment
 Quality assessment personnel can take a set of rated images and a .csv of completed images to check the rating. The images are uploaded on the software’s starting page, as usual. When going to the “Manual assessment” page, there is a box at the bottom which allows QA to upload past ratings. QA can then go to the “Assessment summary” page and use the gallery provided at the bottom to click through the ratings and note the image name of any rating that might need to be changed. Unfortunately ratings can not be changed in the gallery directly and instead need to manually be changed in the .csv or you can also note them in a separate file and we can change them on our end.
-
