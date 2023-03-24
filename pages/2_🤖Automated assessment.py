@@ -26,7 +26,7 @@ try:
     curr_eval_df = curr_eval_df.merge(temp_prompt_dir,on='Prompt_no')
 
     # Check that user correctly filled out the automation setup file
-    assert list(fun_dict.keys())==st.session_state['automated_tasks'], 'Unsure that the list of automated tasks in Dashboard_setup.py is the same as the keys of the function dict in Dashboard_automation_setup.py'
+    assert list(fun_dict.keys())==st.session_state['automated_tasks'], 'Make sure that the list of automated tasks in Dashboard_setup.py is the same as the keys of the function dict in Dashboard_automation_setup.py'
 except KeyError:
     automated_eval_available = 0
 
