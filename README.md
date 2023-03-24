@@ -12,6 +12,8 @@ pip install -r requirements.txt
 streamlit run Dashboard.py
 ```
 
+## Results of annotations / evaluations
+This repository also collects the results of large scale annotations and evaluations. We already provide the annotations described in the AAAI Spring Symposium '23 (EDGeS) paper. You can contribute additional annotation study results using regular pull requests. Please provide details on how the manual annotations were captured and whether you followed the annotation guidance as outlined in the annotation folder. 
 
 ## Customization guide
 The benchmark software has been built with customizability in mind. It is easy for the user to add their own prompts and tasks into the locally hosted version and provide an automated evaluation algorithm for existing or new tasks. Below we describe how to add custom elements to the benchmark. Follow the instructions below and the software will configure all elements on the pages as needed.
