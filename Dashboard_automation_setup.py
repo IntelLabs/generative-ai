@@ -2,9 +2,9 @@ from pages.Functions.Assessment_functions import CLIP_single_object_classifier, 
 
 # Create dictionary to hold functions used for automated assessment
 fun_dict = {
-    'Multiple object types':CLIP_multi_object_recognition_DSwrapper, 
+    'Multiple objects':CLIP_multi_object_recognition_DSwrapper, 
     'Single object':CLIP_single_object_classifier,
     'Negation':CLIP_object_negation,
-    'Numbers (multiple objects)':DETR_multi_object_counting_DSwrapper,
+    'Counting':DETR_multi_object_counting_DSwrapper,
     'Simple arithmetic':DETR_multi_object_counting_DSwrapper,
     'Conditional generation':CLIP_object_negation}

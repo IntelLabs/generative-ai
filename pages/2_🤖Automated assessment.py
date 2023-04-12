@@ -7,7 +7,7 @@ sidebar_information() # Move this up to be displayed before the evaluation funct
 from Dashboard_automation_setup import fun_dict
 
 st.title('Automated Assessment')
-st.write('On this page you can use automated assessment algorithms to assess how good uploaded images match their respective prompts. Note that the automatic assessment routines have not been validated and accuracy estimates will be provided in a future version.')
+st.write('On this page you can use automated assessment algorithms to assess how good uploaded images match their respective prompts. Note that current automated routines are not yet on the level to replace human annotators. We provide the accuracy of automated annotations as estimated on the data collected with human annotators as part of the Github repository under: /annotations/AAAI_EDGeS_23/automated_annotation_accuracy.ipynb')
 st.write(' ')
 
 ###### Setup of variables ############################
@@ -26,7 +26,7 @@ try:
     curr_eval_df = curr_eval_df.merge(temp_prompt_dir,on='Prompt_no')
 
     # Check that user correctly filled out the automation setup file
-    assert list(fun_dict.keys())==st.session_state['automated_tasks'], 'Unsure that the list of automated tasks in Dashboard_setup.py is the same as the keys of the function dict in Dashboard_automation_setup.py'
+    assert list(fun_dict.keys())==st.session_state['automated_tasks'], 'Make sure that the list of automated tasks in Dashboard_setup.py is the same as the keys of the function dict in Dashboard_automation_setup.py'
 except KeyError:
     automated_eval_available = 0
 
